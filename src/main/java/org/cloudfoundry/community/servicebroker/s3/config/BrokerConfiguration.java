@@ -51,12 +51,15 @@ import com.google.common.io.Resources;
 @Configuration
 @ComponentScan(basePackages = "org.cloudfoundry.community.servicebroker", excludeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = BrokerApiVersionConfig.class) })
 public class BrokerConfiguration {
-    
+
     @Value("${AWS_ACCESS_KEY}")
     private String accessKey;
-    
+
     @Value("${AWS_SECRET_KEY}")
     private String secretKey;
+
+    @Value("${S3_ENDPOINT}")
+    private String s3endpoint;
 
     private AWSCredentials awsCredentials() {
         return new BasicAWSCredentials(accessKey, secretKey);
@@ -69,7 +72,13 @@ public class BrokerConfiguration {
 
     @Bean
     public AmazonS3 amazonS3() {
-        return new AmazonS3Client(awsCredentials());
+        AmazonS3Client s3client = new AmazonS3Client(awsCredentials());
+
+        if (s3endpoint != null && !s3endpoint.isEmpty()) {
+          s3client.setEndpoint(s3endpoint);
+        }
+
+        return s3client;
     }
 
     @Bean
